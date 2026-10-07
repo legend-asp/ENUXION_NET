@@ -1,0 +1,15 @@
+## Сборка и бинарники
+[Bb]in/
+[Oo]bj/
+
+## Временные файлы Visual Studio
+.vs/
+*.user
+*.suo
+
+## Базы данных (SQLite & LocalDB)
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf

@@ -1,0 +1,35 @@
+﻿@model MessengerApp1.Models.LoginViewModel
+
+<div class="flex items-center justify-center min-h-[70vh]">
+    <div class="w-full max-w-sm border border-white/10 bg-white/[0.02] p-8 rounded-2xl backdrop-blur-sm">
+        <div class="mb-8 text-center">
+            <h2 class="font-mono text-xl font-bold tracking-[0.2em] uppercase text-white">Identity_Check</h2>
+            <p class="text-[10px] font-mono text-zinc-500 mt-2 uppercase tracking-widest">Enter Credentials to decrypt node</p>
+        </div>
+
+        <form asp-action="Login" method="post" class="space-y-6">
+            <div class="space-y-1">
+                <label class="text-[9px] font-mono text-zinc-400 uppercase ml-1">Node_ID (Email)</label>
+                <input asp-for="Email" placeholder="root@enuxion.net"
+                       class="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm font-mono text-white outline-none focus:border-white/30 transition-all rounded-lg" />
+            </div>
+
+            <div class="space-y-1">
+                <label class="text-[9px] font-mono text-zinc-400 uppercase ml-1">Access_Key</label>
+                <input asp-for="Password" type="password" placeholder="••••••••"
+                       class="w-full bg-white/5 border border-white/10 px-4 py-3 text-sm font-mono text-white outline-none focus:border-white/30 transition-all rounded-lg" />
+            </div>
+
+            <button type="submit" class="w-full py-4 bg-white text-black font-mono text-xs font-black uppercase tracking-widest hover:bg-zinc-200 transition-all active:scale-[0.98]">
+                Execute_Login
+            </button>
+        </form>
+
+        <div class="mt-10 pt-6 border-t border-white/5 text-center">
+            <p class="text-[10px] font-mono text-zinc-500 uppercase">No existing node?</p>
+            <a asp-action="Register" class="inline-block mt-2 text-[10px] font-mono text-white hover:underline underline-offset-4 decoration-zinc-500">
+                [ Initialize_New_Protocol ]
+            </a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,126 @@
+﻿@model MessengerApp1.Models.ApplicationUser
+
+<div class="max-w-4xl mx-auto py-10 font-mono">
+    <div class="flex flex-col md:flex-row gap-10">
+        <div class="w-full md:w-64 space-y-4">
+            <!-- Аватар узла -->
+            <div class="aspect-square border border-white/10 overflow-hidden bg-zinc-900 rounded-sm">
+                <img src="@(string.IsNullOrEmpty(Model.PhotoPath) ? "/images/default-avatar.png" : Model.PhotoPath)"
+                     alt="Avatar"
+                     class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                @if (ViewBag.IsOwnProfile == true)
+                {
+                    <a asp-controller="Profile" asp-action="Settings" class="btn-terminal text-center text-white hover:border-white">
+                        <i class="bi bi-gear-fill mr-1.5 text-zinc-400"></i> EDIT_SETTINGS
+                    </a>
+                }
+                else
+                {
+                    <!-- ГЛАВНАЯ КНОПКА: SEND_ENCRYPTED_MSG (в цвет активной темы, 100% читаемый текст) -->
+                    <a asp-controller="Messages" asp-action="Chat" asp-route-id="@Model.Id"
+                       style="background-color: var(--accent, #3b82f6); color: #000000; border-color: var(--accent, #3b82f6);"
+                       class="btn-terminal text-center font-black flex items-center justify-center gap-2 hover:brightness-110 shadow-[0_0_15px_rgba(var(--accent-rgb,59,130,246),0.25)]">
+                        <i class="bi bi-chat-dots-fill text-xs"></i>
+                        <span>SEND_ENCRYPTED_MSG</span>
+                    </a>
+
+                    @if (ViewBag.FriendshipStatus == "Accepted")
+                    {
+                        <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full border-red-900/50 text-red-500 hover:bg-red-950/40">
+                                DISCONNECT_NODE
+                            </button>
+                        </form>
+                    }
+                    else if (ViewBag.FriendshipStatus == "Sent")
+                    {
+                        <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full opacity-50 text-zinc-400">
+                                CANCEL_REQUEST
+                            </button>
+                        </form>
+                    }
+                    else if (ViewBag.FriendshipStatus == "Received")
+                    {
+                        <div class="flex gap-2">
+                            <form asp-action="AcceptFriend" asp-route-id="@Model.Id" method="post" class="flex-1">
+                                <button type="submit" class="btn-terminal w-full border-green-900/50 text-green-500 hover:bg-green-950/40">
+                                    ACCEPT
+                                </button>
+                            </form>
+                            <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post" class="flex-1">
+                                <button type="submit" class="btn-terminal w-full border-red-900/50 text-red-500 hover:bg-red-950/40">
+                                    DECLINE
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="AddFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full text-white hover:text-white">
+                                LINK_REQUEST
+                            </button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Данные узла -->
+        <div class="flex-1 space-y-8">
+            <div class="border-b border-white/10 pb-4">
+                <div class="flex justify-between items-end">
+                    <h2 class="text-3xl font-black tracking-tighter uppercase text-white">@("@")@Model.UserName</h2>
+                    <span class="text-[10px] px-2 py-1 border border-zinc-800 text-zinc-500 uppercase">Status: @(Model.Status ?? "Operator")</span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-1 uppercase tracking-[0.2em]">Digital_Identity_Verified</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6 text-[11px] uppercase tracking-wider">
+                <div>
+                    <span class="text-zinc-600 block mb-1">Node_Creation</span>
+                    <span class="text-white">@Model.BirthDate.ToString("yyyy.MM.dd")</span>
+                </div>
+                <div>
+                    <span class="text-zinc-600 block mb-1">Identity_ID</span>
+                    <span class="text-white">#@Model.Id.Substring(0, Math.Min(8, Model.Id.Length))</span>
+                </div>
+                <div class="col-span-2">
+                    <span class="text-zinc-600 block mb-1">Encrypted_Mail</span>
+                    <span class="text-white">@Model.Email</span>
+                </div>
+            </div>
+
+            <div class="bg-zinc-900/30 p-4 border-l-2 border-white/20">
+                <span class="text-[10px] text-zinc-600 uppercase block mb-2">Bio_Extract</span>
+                <p class="text-sm text-zinc-300 leading-relaxed italic">
+                    "@(string.IsNullOrEmpty(Model.About) ? "Node data is empty. No additional logs found." : Model.About)"
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-terminal {
+        display: block;
+        padding: 10px;
+        font-size: 10px;
+        font-weight: bold;
+        border: 1px solid rgba(255,255,255,0.1);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: inherit; /* Позволяет дочерним классам (text-black, text-red-500 и т.д.) управлять цветом */
+    }
+
+        .btn-terminal:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.05);
+        }
+</style>

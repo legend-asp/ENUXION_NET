@@ -1,0 +1,122 @@
+﻿@model MessengerApp1.Models.ApplicationUser
+@{
+    ViewData["Title"] = "ENUXION_WALLET";
+    var balance = Model?.Balance ?? 0;
+    var history = ViewBag.Transfers as List<MessengerApp1.Models.Message> ?? new List<MessengerApp1.Models.Message>();
+}
+
+<div class="max-w-xl mx-auto py-6 font-mono text-white">
+    <!-- КАРТА БАЛАНСА КИБЕР-ТЕРМИНАЛА -->
+    <div class="relative overflow-hidden bg-gradient-to-b from-zinc-900 to-black border border-white/10 rounded-[32px] shadow-2xl p-8 mb-6 text-center">
+        <div class="flex justify-between items-center mb-6">
+            <span class="text-[9px] uppercase tracking-widest text-zinc-500 font-bold">ASSET_PROTOCOL // MAINNET</span>
+            <span class="text-[8px] px-2 py-0.5 rounded border border-green-500/30 text-green-400 bg-green-500/10">STABLE</span>
+        </div>
+
+        <div class="my-4">
+            <div class="text-6xl font-black tracking-tighter" style="color: var(--accent, #3b82f6);">
+                @balance.ToString("N2") <span class="text-2xl text-white font-bold">ENU</span>
+            </div>
+            <p class="text-xs text-zinc-500 mt-2 tracking-widest">≈ $ @((balance * 1.25m).ToString("N2")) USD</p>
+        </div>
+
+        <!-- Кликабельный адрес узла -->
+        <div onclick="copyNodeId('@Model.Id')"
+             class="inline-flex items-center gap-2 bg-white/[0.04] border border-white/10 px-4 py-2 rounded-xl cursor-pointer hover:border-white/30 transition-all mt-4">
+            <span class="text-[10px] text-zinc-400">NODE_ID: #@Model.Id.Substring(0, Math.Min(12, Model.Id.Length))...</span>
+            <i class="bi bi-clipboard text-xs text-zinc-400"></i>
+        </div>
+        <p id="copyToast" class="text-[8px] text-green-400 uppercase tracking-widest mt-1 opacity-0 transition-opacity">COPIED_TO_BUFFER</p>
+    </div>
+
+    <!-- КНОПКИ ДЕЙСТВИЙ -->
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <a asp-controller="Group" asp-action="Index"
+           class="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all text-center no-underline flex flex-col items-center gap-2 group">
+            <i class="bi bi-send-fill text-xl group-hover:scale-110 transition-transform" style="color: var(--accent, #3b82f6);"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300">P2P Transfer</span>
+        </a>
+
+        <button type="button" onclick="document.getElementById('receiveModal').classList.remove('hidden')"
+                class="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/30 transition-all text-center flex flex-col items-center gap-2 group">
+            <i class="bi bi-qr-code-scan text-xl group-hover:scale-110 transition-transform text-white"></i>
+            <span class="text-[10px] font-bold uppercase tracking-wider text-zinc-300">Receive Code</span>
+        </button>
+    </div>
+
+    <!-- ИСТОРИЯ ТРАНЗАКЦИЙ -->
+    <div class="border border-white/10 bg-zinc-950/60 rounded-2xl p-6 backdrop-blur-md">
+        <h3 class="text-xs font-black uppercase tracking-widest text-zinc-400 mb-4 flex items-center gap-2">
+            <i class="bi bi-clock-history"></i>
+            <span>LEDGER_HISTORY</span>
+        </h3>
+
+        @if (!history.Any())
+        {
+            <div class="text-center py-8 text-zinc-600 text-[10px] uppercase tracking-widest">
+                No recent transfer logs in memory
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var tx in history)
+                {
+                    var isSent = tx.SenderId == Model.Id;
+                    var amount = tx.Text.Replace("[SYSTEM_TRANSFER]:", "").Trim();
+
+                    <div class="flex justify-between items-center p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center @(isSent ? "bg-red-500/10 text-red-500" : "bg-green-500/10 text-green-500")">
+                                <i class="bi @(isSent ? "bi-arrow-up-right" : "bi-arrow-down-left") text-sm"></i>
+                            </div>
+                            <div>
+                                <span class="text-[11px] font-bold text-white block">@(isSent ? "OUTGOING_TRANSFER" : "INCOMING_RECEIPT")</span>
+                                <span class="text-[8px] text-zinc-600">@tx.SentAt.ToString("yyyy.MM.dd HH:mm")</span>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <span class="text-xs font-black @(isSent ? "text-red-400" : "text-green-400")">
+                                @(isSent ? "-" : "+")@amount ENU
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+<!-- МОДАЛКА RECEIVE С QR-КОДОМ -->
+<div id="receiveModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 font-mono">
+    <div class="bg-zinc-900 border border-white/10 max-w-sm w-full p-8 rounded-3xl text-center shadow-2xl">
+        <h3 class="text-sm font-black uppercase tracking-widest text-white mb-2">RECEIVE_CREDITS</h3>
+        <p class="text-[9px] text-zinc-500 uppercase tracking-widest mb-6">Сканируйте QR или передайте Node ID</p>
+
+        <!-- Генерация QR через публичный API -->
+        <div class="p-4 bg-white rounded-2xl inline-block mb-6 shadow-inner">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=@Model.Id"
+                 alt="QR Code" class="w-40 h-40" />
+        </div>
+
+        <p class="text-[10px] text-zinc-400 break-all bg-black/40 p-3 rounded-lg border border-white/5 mb-6">
+            @Model.Id
+        </p>
+
+        <button type="button" onclick="document.getElementById('receiveModal').classList.add('hidden')"
+                class="w-full py-3 bg-white text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:invert transition-all">
+            DISMISS
+        </button>
+    </div>
+</div>
+
+<script>
+    function copyNodeId(id) {
+        navigator.clipboard.writeText(id).then(() => {
+            const toast = document.getElementById('copyToast');
+            toast.style.opacity = '1';
+            setTimeout(() => toast.style.opacity = '0', 2000);
+        });
+    }
+</script>

@@ -1,0 +1,99 @@
+﻿@model IEnumerable<MessengerApp1.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "NODE_RADAR";
+}
+
+<div class="max-w-4xl mx-auto py-8 font-mono text-white">
+    <!-- ЗАГОЛОВОК И ПОИСКОВАЯ СТРОКА -->
+    <div class="mb-10 text-center">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/10 bg-white/[0.02] mb-3">
+            <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--accent, #3b82f6);"></span>
+            <span class="text-[9px] uppercase tracking-widest text-zinc-400">GLOBAL_TELEMETRY_RADAR</span>
+        </div>
+        <h2 class="text-3xl font-black tracking-[0.4em] uppercase mb-6">SCAN_FOR_NODES</h2>
+
+        <form asp-action="Index" method="get" class="max-w-xl mx-auto relative group">
+            <input type="text" name="searchString" autofocus required
+                   placeholder="ENTER_OPERATOR_CALLSIGN..."
+                   class="w-full bg-black/60 border-2 border-white/10 focus:border-white px-5 py-4 rounded-xl text-sm tracking-widest text-white outline-none transition-all shadow-2xl" />
+
+            <button type="submit"
+                    style="background-color: var(--accent, #3b82f6); color: #000;"
+                    class="absolute right-2 top-2 bottom-2 px-5 rounded-lg text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center gap-1.5">
+                <i class="bi bi-radar"></i>
+                <span>SCAN</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- РЕЗУЛЬТАТЫ СКАНИРОВАНИЯ -->
+    @if (ViewBag.SearchPerformed == true)
+    {
+        @if (Model == null || !Model.Any())
+        {
+            <div class="max-w-md mx-auto text-center py-12 border border-red-500/20 bg-red-950/10 rounded-2xl backdrop-blur-sm">
+                <i class="bi bi-exclamation-triangle text-3xl text-red-500 block mb-2"></i>
+                <p class="text-xs text-red-400 uppercase tracking-widest font-bold">Node_Not_Detected</p>
+                <p class="text-[10px] text-zinc-600 mt-1">Сигнатура в глобальной сети не найдена. Проверьте позывной.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach (var user in Model)
+                {
+                    <div class="p-5 bg-white/[0.02] border border-white/10 hover:border-white/30 rounded-2xl transition-all duration-300 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="relative w-12 h-12 rounded-xl bg-zinc-900 border border-white/10 overflow-hidden">
+                                <img src="@(string.IsNullOrEmpty(user.PhotoPath) ? "/images/default-avatar.png" : user.PhotoPath)"
+                                     class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all" />
+                                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-black"
+                                      style="background-color: var(--accent, #3b82f6);"></span>
+                            </div>
+                            <div>
+                                <span class="text-sm font-black text-white uppercase tracking-wider block">@("@")@user.UserName</span>
+                                <span class="text-[9px] text-zinc-500 uppercase tracking-widest">
+                                    ID: #@user.Id.Substring(0, Math.Min(6, user.Id.Length)) • @(user.Status ?? "OPERATOR")
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <a asp-controller="Profile" asp-action="View" asp-route-id="@user.Id"
+                               class="text-[9px] px-3 py-2 border border-white/10 hover:border-white text-zinc-400 hover:text-white rounded-lg transition-colors no-underline">
+                                PROFILE
+                            </a>
+                            <a asp-controller="Messages" asp-action="Chat" asp-route-id="@user.Id"
+                               style="background-color: var(--accent, #3b82f6); color: #000;"
+                               class="text-[9px] px-4 py-2 font-bold uppercase rounded-lg hover:brightness-110 transition-all no-underline">
+                                CONNECT
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <!-- АНИМИРОВАННЫЙ РАДАР В РЕЖИМЕ ОЖИДАНИЯ -->
+        <div class="flex flex-col items-center justify-center py-16 opacity-75">
+            <div class="relative w-48 h-48 rounded-full border border-white/10 flex items-center justify-center mb-6 overflow-hidden">
+                <!-- Концентрические кольца радара -->
+                <div class="absolute inset-4 rounded-full border border-white/5"></div>
+                <div class="absolute inset-12 rounded-full border border-white/5"></div>
+                <div class="absolute inset-20 rounded-full border border-white/5"></div>
+
+                <!-- Крутящийся луч -->
+                <div class="absolute inset-0 origin-center animate-spin" style="animation-duration: 4s;">
+                    <div class="w-1/2 h-1/2 bg-gradient-to-br from-transparent"
+                         style="background-image: linear-gradient(135deg, rgba(var(--accent-rgb, 59, 130, 246), 0.35), transparent 70%);"></div>
+                </div>
+
+                <i class="bi bi-broadcast text-2xl relative z-10 text-zinc-400"></i>
+            </div>
+            <p class="text-xs uppercase tracking-[0.3em] text-zinc-500">RADAR_STANDBY: Awaiting Target Handle...</p>
+        </div>
+    }
+</div>

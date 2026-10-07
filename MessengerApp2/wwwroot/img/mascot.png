@@ -1,0 +1,6 @@
+﻿namespace MessengerApp1.wwwroot.img
+{
+    public class mascot
+    {
+    }
+}

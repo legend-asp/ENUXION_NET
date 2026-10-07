@@ -1,0 +1,71 @@
+﻿@model IEnumerable<MessengerApp1.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "LINK_REQUESTS";
+}
+
+<div class="max-w-2xl mx-auto py-8 font-mono text-white">
+    <div class="border border-white/10 bg-zinc-950/80 p-8 rounded-2xl shadow-2xl backdrop-blur-md">
+        <div class="flex items-center justify-between mb-8 pb-4 border-b border-white/10">
+            <div>
+                <h2 class="text-sm font-black tracking-[0.3em] uppercase flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--accent, #3b82f6);"></span>
+                    INCOMING_HANDSHAKE_BUFFER
+                </h2>
+                <p class="text-[9px] text-zinc-500 uppercase tracking-widest mt-1">Ожидающие подтверждения P2P-соединения</p>
+            </div>
+            <span class="text-[9px] px-2.5 py-1 rounded bg-white/5 border border-white/10 text-zinc-400">
+                PENDING: @(Model?.Count() ?? 0)
+            </span>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="text-center py-16 border border-dashed border-white/10 rounded-xl">
+                <i class="bi bi-shield-check text-2xl text-zinc-600 block mb-2"></i>
+                <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-4">No pending handshake requests found.</p>
+                <a asp-controller="Search" asp-action="Index"
+                   class="text-[9px] px-4 py-2 border border-white/20 hover:border-white text-white uppercase rounded transition-colors no-underline">
+                    [ Open_Node_Scanner ]
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="space-y-3">
+                @foreach (var user in Model)
+                {
+                    <div class="flex items-center justify-between p-4 bg-white/[0.02] border border-white/10 hover:border-white/30 rounded-xl transition-all">
+                        <div class="flex items-center gap-4">
+                            <img src="@(string.IsNullOrEmpty(user.PhotoPath) ? "/images/default-avatar.png" : user.PhotoPath)"
+                                 class="w-10 h-10 rounded-lg object-cover grayscale border border-white/10" />
+                            <div>
+                                <a asp-action="View" asp-route-id="@user.Id" class="text-xs font-bold text-white hover:text-zinc-300 transition-colors no-underline">
+                                    @("@")@user.UserName
+                                </a>
+                                <p class="text-[8px] text-zinc-500 uppercase mt-0.5">
+                                    ID: #@user.Id.Substring(0, Math.Min(6, user.Id.Length)) • @(user.Status ?? "OPERATOR")
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2">
+                            <form asp-action="AcceptFriend" asp-route-id="@user.Id" method="post">
+                                <button type="submit"
+                                        style="background-color: var(--accent, #3b82f6); color: #000;"
+                                        class="text-[9px] font-black uppercase px-4 py-2 rounded-lg hover:brightness-110 transition-all">
+                                    ESTABLISH
+                                </button>
+                            </form>
+                            <form asp-action="RemoveFriend" asp-route-id="@user.Id" method="post">
+                                <button type="submit" class="text-[9px] font-bold text-red-400 border border-red-500/30 px-3 py-2 rounded-lg hover:bg-red-500/10 transition-all">
+                                    REJECT
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

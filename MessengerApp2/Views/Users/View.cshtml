@@ -1,0 +1,92 @@
+﻿@model MessengerApp1.Models.ApplicationUser
+
+<div class="max-w-4xl mx-auto py-10 font-mono">
+    <div class="flex flex-col md:flex-row gap-10">
+        <div class="w-full md:w-64 space-y-4">
+            <div class="aspect-square border border-white/10 overflow-hidden bg-zinc-900">
+                <img src="@(string.IsNullOrEmpty(Model.PhotoPath) ? "/img/default-avatar.png" : Model.PhotoPath)"
+                     class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                @if (ViewBag.IsOwnProfile == true)
+                {
+                    <a asp-controller="Profile" asp-action="Index" class="btn-terminal text-center">EDIT_PROFILE</a>
+                }
+                else
+                {
+                    <a asp-controller="Messages" asp-action="Chat" asp-route-id="@Model.Id" class="btn-terminal text-center bg-white text-black">SEND_ENCRYPTED_MSG</a>
+
+                    @if (ViewBag.FriendshipStatus == "Accepted")
+                    {
+                        <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full border-red-900/50 text-red-500 hover:bg-red-950">DISCONNECT_NODE</button>
+                        </form>
+                    }
+                    else if (ViewBag.FriendshipStatus == "Sent")
+                    {
+                        <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full opacity-50">CANCEL_REQUEST</button>
+                        </form>
+                    }
+                    else if (ViewBag.FriendshipStatus == "Received")
+                    {
+                        <div class="flex gap-2">
+                            <form asp-action="AcceptFriend" asp-route-id="@Model.Id" method="post" class="flex-1">
+                                <button type="submit" class="btn-terminal w-full border-green-900/50 text-green-500 hover:bg-green-950 font-bold">ACCEPT</button>
+                            </form>
+                            <form asp-action="RemoveFriend" asp-route-id="@Model.Id" method="post" class="flex-1">
+                                <button type="submit" class="btn-terminal w-full border-red-900/50 text-red-500 font-bold">DECLINE</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="AddFriend" asp-route-id="@Model.Id" method="post">
+                            <button type="submit" class="btn-terminal w-full">LINK_REQUEST</button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="flex-1 space-y-8">
+            <div class="border-b border-white/10 pb-4">
+                <div class="flex justify-between items-end">
+                    <h2 class="text-3xl font-black tracking-tighter uppercase text-white">@("@")@Model.UserName</h2>
+                    <span class="text-[10px] px-2 py-1 border border-zinc-800 text-zinc-500 uppercase">Status: @(Model.Status ?? "Operator")</span>
+                </div>
+                <p class="text-xs text-zinc-500 mt-1 uppercase tracking-[0.2em]">Digital_Identity_Verified</p>
+            </div>
+
+            <div class="bg-zinc-900/30 p-4 border-l-2 border-white/20">
+                <span class="text-[10px] text-zinc-600 uppercase block mb-2">Bio_Extract</span>
+                <p class="text-sm text-zinc-300 leading-relaxed italic">
+                    "@Model.About"
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-terminal {
+        display: block;
+        padding: 10px;
+        font-size: 10px;
+        font-weight: bold;
+        border: 1px solid rgba(255,255,255,0.1);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        transition: all 0.3s;
+        text-decoration: none;
+        color: white;
+        background: transparent;
+        cursor: pointer;
+    }
+
+        .btn-terminal:hover {
+            border-color: white;
+            background: rgba(255,255,255,0.05);
+        }
+</style>

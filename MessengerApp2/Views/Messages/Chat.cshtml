@@ -1,0 +1,188 @@
+﻿@model IEnumerable<MessengerApp1.Models.Message>
+@{
+    var receiver = ViewBag.Receiver as MessengerApp1.Models.ApplicationUser;
+    string anonId = receiver != null ? "ID_" + (receiver.Id.Length > 8 ? receiver.Id.Substring(0, 8).ToUpper() : receiver.Id.ToUpper()) : "UNKNOWN_NODE";
+}
+
+<div class="max-w-4xl mx-auto py-6">
+    <div class="border border-white/10 bg-black/40 backdrop-blur-md rounded-2xl overflow-hidden shadow-2xl">
+        <!-- ШАПКА ЧАТА -->
+        <div class="p-4 border-b border-white/5 bg-white/[0.02] flex justify-between items-center font-mono">
+            <!-- Кликабельная карточка собеседника (Аватар + ID + Статус) -->
+            @if (receiver != null)
+            {
+                <a asp-controller="Profile" asp-action="View" asp-route-id="@receiver.Id"
+                   title="Open Node Profile"
+                   class="flex items-center gap-3 group no-underline transition-all">
+                    <div class="relative">
+                        <img src="@(string.IsNullOrEmpty(receiver.PhotoPath) ? "/images/default-avatar.png" : receiver.PhotoPath)"
+                             alt="Avatar"
+                             class="w-10 h-10 rounded-full object-cover border border-white/10 group-hover:border-white/40 transition-colors" />
+                        <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-black animate-pulse"
+                              style="background-color: var(--accent, #3b82f6);"></span>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-xs font-bold text-white group-hover:text-zinc-300 transition-colors">@anonId</span>
+                            <i class="bi bi-arrow-up-right text-[10px] text-zinc-500 group-hover:text-white transition-colors"></i>
+                        </div>
+                        <span class="text-[8px] text-zinc-500 uppercase tracking-widest block">
+                            @(string.IsNullOrEmpty(receiver.Status) ? "P2P_SESSION_ACTIVE" : receiver.Status)
+                        </span>
+                    </div>
+                </a>
+            }
+            else
+            {
+                <div class="flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-zinc-600"></div>
+                    <span class="text-xs text-zinc-400">P2P_SESSION: @anonId</span>
+                </div>
+            }
+
+            <!-- Правая часть: кнопка перехода в профиль + версия протокола -->
+            <div class="flex items-center gap-4">
+                <span class="text-[9px] text-zinc-600 tracking-widest uppercase hidden sm:inline">Protocol: ENUX_v3</span>
+
+                @if (receiver != null)
+                {
+                    <a asp-controller="Profile" asp-action="View" asp-route-id="@receiver.Id"
+                       class="flex items-center gap-2 px-3.5 py-1.5 rounded-lg border border-white/10 bg-white/[0.03] hover:bg-white/[0.08] hover:border-white/20 text-zinc-300 hover:text-white text-[9px] uppercase font-bold tracking-widest transition-all no-underline shadow-sm">
+                        <i class="bi bi-person-badge text-xs" style="color: var(--accent, #3b82f6);"></i>
+                        <span>Node_Profile</span>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <!-- ОКНО СООБЩЕНИЙ -->
+        <div id="chatWindow" class="h-[550px] overflow-y-auto p-6 space-y-4 bg-black/20">
+            @foreach (var msg in Model)
+            {
+                var isMine = msg.SenderId != receiver?.Id;
+                @if (msg.Text.StartsWith("[SYSTEM_TRANSFER]"))
+                {
+                    <div class="flex justify-center my-3">
+                        <div class="bg-zinc-900/80 border border-white/10 rounded-xl p-3 w-40 shadow-lg backdrop-blur-sm">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[7px] font-bold text-zinc-500 uppercase tracking-widest font-mono">Transfer</span>
+                                <i class="bi bi-patch-check-fill text-[9px]" style="color: var(--accent, #3b82f6);"></i>
+                            </div>
+                            <div class="text-center mb-1">
+                                <span class="text-lg font-black text-white">@msg.Text.Replace("[SYSTEM_TRANSFER]:", "").Trim()</span>
+                                <span class="text-[8px] font-bold" style="color: var(--accent, #3b82f6);">ENU</span>
+                            </div>
+                            <div class="flex justify-center items-center gap-1 border-t border-white/5 pt-1">
+                                <span class="text-[6px] text-zinc-600 uppercase">Status:</span>
+                                <span class="text-[6px] text-green-500 font-bold uppercase">Confirmed</span>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="flex @(isMine ? "justify-end" : "justify-start")">
+                        <div class="max-w-[75%]">
+                            <div class="p-3 rounded-2xl text-sm @(isMine ? "text-white" : "bg-zinc-900 text-zinc-300 border border-white/10")"
+                                 style="@(isMine ? "background-color: var(--accent, #2563eb);" : "")">
+                                @msg.Text
+                            </div>
+                            <div class="text-[8px] mt-1 font-mono text-zinc-600 @(isMine ? "text-right" : "")">
+                                [@msg.SentAt.ToString("HH:mm:ss")]
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+
+        <!-- ФОРМА ОТПРАВКИ -->
+        <div class="p-4 bg-zinc-950/80 border-t border-white/5">
+            <form asp-controller="Messages" asp-action="SendMessage" method="post" class="flex gap-3 items-center">
+                <input type="hidden" name="receiverId" value="@receiver?.Id" />
+
+                <!-- Кнопка перевода ENU -->
+                <button type="button" onclick="document.getElementById('transferModal').classList.remove('hidden')"
+                        style="border-color: rgba(var(--accent-rgb, 59, 130, 246), 0.3); color: var(--accent, #3b82f6);"
+                        class="flex items-center justify-center w-11 h-11 rounded-full border hover:brightness-125 transition-all bg-white/[0.02]">
+                    <i class="bi bi-currency-exchange text-lg"></i>
+                </button>
+
+                <div class="flex-1">
+                    <input type="text" name="content" placeholder="Broadcast message..." autocomplete="off" required
+                           class="w-full bg-white/5 border border-white/10 px-5 py-3 rounded-full text-sm outline-none text-white transition-all focus:border-white/30" />
+                </div>
+
+                <!-- Кнопка Execute_Send в цвет текущей темы -->
+                <button type="submit"
+                        style="background-color: var(--accent, #2563eb);"
+                        class="px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest text-white hover:brightness-110 transition-all">
+                    Execute_Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- МОДАЛКА ПЕРЕВОДА ENU -->
+<div id="transferModal" class="hidden fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-zinc-900 border border-white/10 w-full max-w-sm rounded-[32px] p-8 shadow-2xl">
+        <h3 class="text-xl font-black mb-1 text-white uppercase tracking-tighter">Transfer ENU</h3>
+        <p class="text-[10px] text-zinc-500 uppercase mb-8 font-mono tracking-widest">To_Node: @anonId</p>
+        <form id="ajaxTransferForm" asp-controller="Wallet" asp-action="Transfer" method="post">
+            <input type="hidden" name="receiverId" value="@receiver?.Id" />
+            <div class="mb-8">
+                <div class="relative">
+                    <input type="number" name="amount" step="0.01" min="0.01" placeholder="0.00" required
+                           class="w-full bg-white/5 border border-white/10 py-5 px-6 rounded-2xl text-3xl font-black text-white outline-none focus:border-white/30 transition-all" />
+                    <span class="absolute right-6 top-6 font-black" style="color: var(--accent, #3b82f6);">ENU</span>
+                </div>
+            </div>
+            <div class="flex gap-3">
+                <button type="button" onclick="document.getElementById('transferModal').classList.add('hidden')"
+                        class="flex-1 py-4 rounded-2xl bg-zinc-800 text-[10px] font-black uppercase tracking-widest text-white hover:bg-zinc-700 transition-all">
+                    Abort
+                </button>
+                <button type="submit"
+                        style="background-color: var(--accent, #2563eb);"
+                        class="flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:brightness-110 transition-all">
+                    Authorize
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const chatWindow = document.getElementById('chatWindow');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+
+        document.getElementById('ajaxTransferForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if(data.success) {
+                    const balanceEl = document.getElementById('headerBalance');
+                    if (balanceEl) balanceEl.innerText = data.newBalance;
+                    document.getElementById('transferModal').classList.add('hidden');
+                    sessionStorage.setItem('chatScroll', 'bottom');
+                    location.reload();
+                } else {
+                    alert(data.message || "Error");
+                }
+            });
+        });
+
+        if (sessionStorage.getItem('chatScroll') === 'bottom') {
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+            sessionStorage.removeItem('chatScroll');
+        }
+    </script>
+}
