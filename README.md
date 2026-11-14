@@ -21,10 +21,10 @@
 ## 🎮 Preview & Running Locally
 Simply clone and open `index.html` in any modern web browser:
 ```bash
-git clone https://github.com/yandereye1/ENUXION_NET.git
+git clone https://github.com/legend-asp/ENUXION_NET.git
 cd ENUXION_NET
 # Open index.html directly or serve with VS Code Live Server
 ```
 ---
 ## 👤 Author
-GitHub: [@yandereye1](https://github.com/yandereye1)
+GitHub: [@legend-asp](https://github.com/legend-asp)
